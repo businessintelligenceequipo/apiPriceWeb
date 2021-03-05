@@ -1,0 +1,25 @@
+{
+  "name": "mysql-nodejs-rest-api",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "dev": "nodemon src/index.js",
+    "start": "node src/index.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "csv-parser": "^3.0.0",
+    "express": "^4.16.3",
+    "fast-csv": "^4.3.6",
+    "moment": "^2.29.1",
+    "mysql": "^2.15.0",
+    "xlsx": "^0.16.9"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.7"
+  }
+}
