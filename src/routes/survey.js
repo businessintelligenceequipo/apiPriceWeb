@@ -207,7 +207,7 @@ router.get("/encuestas/solucion", async (req, res) => {
   var params = ''
   if (fecha_menor != null) {
   params = [encuesta, tienda, pregunta, fecha_menor, fecha_mayor]
-  query = `SELECT tbl_tipoEncuestas.nombre as encuesta , tbl_tienda.nombre as almacen,  pregunta, respuesta, fecha
+  query = `SELECT tbl_tipoEncuestas.pk_tipoEncuesta as pk_encuesta ,tbl_tipoEncuestas.nombre as encuesta ,tbl_tienda.pk_tienda as pk_tienda, tbl_tienda.nombre as almacen,  pregunta, respuesta, fecha
   from tbl_encuestasXtiendas
   inner join tbl_aplicacionEncuesta
   on tbl_aplicacionEncuesta.pk_aplicacionEncuesta = tbl_encuestasXtiendas.tbl_aplicacionEncuesta_pk_aplicacionEncuesta
@@ -223,7 +223,7 @@ router.get("/encuestas/solucion", async (req, res) => {
   AND (fecha between '${fecha_menor}' AND  '${fecha_mayor}' );`;
   } else {
     params = [encuesta, tienda, pregunta]
-    query = `SELECT tbl_tipoEncuestas.nombre as encuesta , tbl_tienda.nombre as almacen,  pregunta, respuesta, fecha
+    query = `SELECT tbl_tipoEncuestas.pk_tipoEncuesta as pk_encuesta,tbl_tipoEncuestas.nombre as encuesta , tbl_tienda.pk_tienda as pk_tienda,tbl_tienda.nombre as almacen,  pregunta, respuesta, fecha
     from tbl_encuestasXtiendas
     inner join tbl_aplicacionEncuesta
     on tbl_aplicacionEncuesta.pk_aplicacionEncuesta = tbl_encuestasXtiendas.tbl_aplicacionEncuesta_pk_aplicacionEncuesta
