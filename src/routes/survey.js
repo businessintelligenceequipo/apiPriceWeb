@@ -1,6 +1,6 @@
 const express = require("express");
 const mysql = require("mysql");
-const moment = require("moment");
+const moment = require("moment-timezone");
 const router = express.Router();
 
 const mysqlConnection = require("../database.js");
@@ -127,7 +127,9 @@ router.post("/encuesta/asignar", (req, res) => {
 });
 
 router.get("/encuestas/asignadas", (req, res) => {
-  var CURRENT_TIMESTAMP = moment(Date.now()).format("YYYY-MM-DD");
+  var CURRENT_TIMESTAMP = moment()
+    .tz("America/Bogota")
+    .format("YYYY-MM-DD HH:mm:ss");
   const query = `SELECT tbl_aplicacionEncuesta.pk_aplicacionEncuesta, tbl_tipoEncuestas.pk_tipoEncuesta, tbl_tipoEncuestas.nombre as encuesta, tbl_tipoEncuestas.descripcion,tbl_tienda_pk_tienda, tbl_tienda.nombre as tienda,
   tbl_aplicacionEncuesta.fechaApertura, tbl_aplicacionEncuesta.fechaCierre, tbl_aplicacionEncuesta.estado
   FROM priceAPP.tbl_encuestasXtiendas
@@ -139,7 +141,7 @@ router.get("/encuestas/asignadas", (req, res) => {
   on tbl_aplicacionEncuesta.tbl_tipoEncuestas_pk_tipoEncuesta = tbl_tipoEncuestas.pk_tipoEncuesta
   WHERE tbl_aplicacionEncuesta.fechaCierre > ?;`;
 
-  mysqlConnection.query(query,[CURRENT_TIMESTAMP], (err, rows, fields) => {
+  mysqlConnection.query(query, [CURRENT_TIMESTAMP], (err, rows, fields) => {
     if (!err) {
       res.json(rows);
     } else {
@@ -172,10 +174,12 @@ router.get("/encuestas/asignadas/tienda/:id", (req, res) => {
 
 router.post("/encuesta/llenar", (req, res) => {
   const { pk_aplicacionEncuesta, pk_tienda, solucion } = req.body;
-  var CURRENT_TIMESTAMP = moment(Date.now()).format("YYYY-MM-DD HH:mm:ss");
+  var CURRENT_TIMESTAMP = moment()
+    .tz("America/Bogota")
+    .format("YYYY-MM-DD HH:mm:ss");
 
   const query = "INSERT INTO tbl_solucionEncuesta SET ?";
-  changeStateAsign(pk_aplicacionEncuesta)
+  changeStateAsign(pk_aplicacionEncuesta);
   solucion.forEach((sol) => {
     var params = {
       fk_aplicacionEncuesta: pk_aplicacionEncuesta,
@@ -197,8 +201,13 @@ router.post("/encuesta/llenar", (req, res) => {
   });
 });
 
-router.get("/encuestas/solucion", (req, res) => {
-  const query = `SELECT tbl_tipoEncuestas.nombre as encuesta , tbl_tienda.nombre as almacen,  pregunta, respuesta, fecha
+router.get("/encuestas/solucion", async (req, res) => {
+  const { encuesta, tienda, pregunta, fecha_menor, fecha_mayor } = req.body;
+  var query = ''
+  var params = ''
+  if (fecha_menor != null) {
+  params = [encuesta, tienda, pregunta, fecha_menor, fecha_mayor]
+  query = `SELECT tbl_tipoEncuestas.nombre as encuesta , tbl_tienda.nombre as almacen,  pregunta, respuesta, fecha
   from tbl_encuestasXtiendas
   inner join tbl_aplicacionEncuesta
   on tbl_aplicacionEncuesta.pk_aplicacionEncuesta = tbl_encuestasXtiendas.tbl_aplicacionEncuesta_pk_aplicacionEncuesta
@@ -207,8 +216,29 @@ router.get("/encuestas/solucion", (req, res) => {
   inner join tbl_tienda
   on tbl_tienda.pk_tienda = tbl_solucionEncuesta.fk_tienda
   inner join tbl_tipoEncuestas
-  on tbl_tipoEncuestas.pk_tipoEncuesta = tbl_aplicacionEncuesta.tbl_tipoEncuestas_pk_tipoEncuesta;`;
-  mysqlConnection.query(query, (err, rows, fields) => {
+  on tbl_tipoEncuestas.pk_tipoEncuesta = tbl_aplicacionEncuesta.tbl_tipoEncuestas_pk_tipoEncuesta
+  WHERE (tbl_tipoEncuestas.pk_tipoEncuesta = ${encuesta} OR ${encuesta} IS null) 
+  AND (tbl_tienda.pk_tienda = ${tienda} OR ${tienda} IS null) 
+  AND (pregunta = ${pregunta} or ${pregunta} is null)
+  AND (fecha between '${fecha_menor}' AND  '${fecha_mayor}' );`;
+  } else {
+    params = [encuesta, tienda, pregunta]
+    query = `SELECT tbl_tipoEncuestas.nombre as encuesta , tbl_tienda.nombre as almacen,  pregunta, respuesta, fecha
+    from tbl_encuestasXtiendas
+    inner join tbl_aplicacionEncuesta
+    on tbl_aplicacionEncuesta.pk_aplicacionEncuesta = tbl_encuestasXtiendas.tbl_aplicacionEncuesta_pk_aplicacionEncuesta
+    inner join tbl_solucionEncuesta
+    on tbl_solucionEncuesta.fk_aplicacionEncuesta = tbl_aplicacionEncuesta.pk_aplicacionEncuesta
+    inner join tbl_tienda
+    on tbl_tienda.pk_tienda = tbl_solucionEncuesta.fk_tienda
+    inner join tbl_tipoEncuestas
+    on tbl_tipoEncuestas.pk_tipoEncuesta = tbl_aplicacionEncuesta.tbl_tipoEncuestas_pk_tipoEncuesta
+    WHERE (tbl_tipoEncuestas.pk_tipoEncuesta = ${encuesta} OR ${encuesta} IS null)
+    AND (tbl_tienda.pk_tienda = ${tienda} OR ${tienda} IS null) 
+    AND (pregunta = ${pregunta} or ${pregunta} is null);`;
+  }
+
+   mysqlConnection.query(query, params,(err, rows, fields) => {
     if (!err) {
       res.json(rows);
     } else {

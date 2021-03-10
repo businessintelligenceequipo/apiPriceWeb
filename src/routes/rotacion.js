@@ -44,7 +44,7 @@ function getRotacion(referencias, saldos) {
     var rot;
     var subtotal_invetatio = 0;
     var subtotal_venta = 0;
-    var color = "";
+    var estado = "";
     for (const sal of saldos) {
       if (ref["descripcion_prov"] == sal["d_producto"]) {
         subtotal_invetatio += parseInt(sal["saldo_disponible"]);
@@ -61,13 +61,15 @@ function getRotacion(referencias, saldos) {
           rot = -1;
         }
         if (rot > 0 && rot < 90) {
-          color = "#5882FA";
+          estado = "Rotación Alta";
         } else if (rot >= 90 && rot <= 250) {
-          color = "#F7FE2E";
+          estado = "Rotación Baja";
         } else if (rot > 250) {
-          color = "#B40404";
-        } else {
-          color = "#FAFAFA";
+          estado = "No Rota";
+        } else if (rot == 0) {
+          estado = "No Rota";
+        }else{
+          estado = "Devolucion"
         }
         rotation.push({
           CODIGO: sal["d_producto"] + sal["d_color_proveedor"],
@@ -78,7 +80,7 @@ function getRotacion(referencias, saldos) {
           VTA: sal["to_cantidad"],
           ROT: rot,
           CORNER: 0,
-          COLOR_ROT: color,
+          ESTADO: estado,
         });
       }
     }
