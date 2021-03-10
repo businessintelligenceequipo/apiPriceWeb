@@ -219,7 +219,7 @@ router.get("/encuestas/solucion", async (req, res) => {
   on tbl_tipoEncuestas.pk_tipoEncuesta = tbl_aplicacionEncuesta.tbl_tipoEncuestas_pk_tipoEncuesta
   WHERE (tbl_tipoEncuestas.pk_tipoEncuesta = ${encuesta} OR ${encuesta} IS null) 
   AND (tbl_tienda.pk_tienda = ${tienda} OR ${tienda} IS null) 
-  AND (pregunta = '${pregunta}' or ${pregunta} is null)
+  AND (pregunta = '${pregunta}' or '${pregunta}' = 'null')
   AND (fecha between '${fecha_menor}' AND  '${fecha_mayor}' );`;
   } else {
     params = [encuesta, tienda, pregunta]
@@ -235,10 +235,10 @@ router.get("/encuestas/solucion", async (req, res) => {
     on tbl_tipoEncuestas.pk_tipoEncuesta = tbl_aplicacionEncuesta.tbl_tipoEncuestas_pk_tipoEncuesta
     WHERE (tbl_tipoEncuestas.pk_tipoEncuesta = ${encuesta} OR ${encuesta} IS null)
     AND (tbl_tienda.pk_tienda = ${tienda} OR ${tienda} IS null) 
-    AND (pregunta = '${pregunta}' or ${pregunta} is null);`;
+    AND (pregunta = '${pregunta}' or '${pregunta}' = 'null');`;
   }
 
-   mysqlConnection.query(query, params,(err, rows, fields) => {
+   mysqlConnection.query(query,(err, rows, fields) => {
     if (!err) {
       res.json(rows);
     } else {
