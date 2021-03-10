@@ -201,13 +201,36 @@ router.post("/encuesta/llenar", (req, res) => {
   });
 });
 
-router.get("/encuestas/solucion", async (req, res) => {
+router.get("/encuestas/powerbi", async (req, res) => {
+  const query = `SELECT tbl_tipoEncuestas.pk_tipoEncuesta as pk_encuesta ,tbl_tipoEncuestas.nombre as encuesta ,tbl_tienda.pk_tienda as pk_tienda, tbl_tienda.nombre as almacen,  pregunta, respuesta, fecha
+  from tbl_encuestasXtiendas
+  inner join tbl_aplicacionEncuesta
+  on tbl_aplicacionEncuesta.pk_aplicacionEncuesta = tbl_encuestasXtiendas.tbl_aplicacionEncuesta_pk_aplicacionEncuesta
+  inner join tbl_solucionEncuesta
+  on tbl_solucionEncuesta.fk_aplicacionEncuesta = tbl_aplicacionEncuesta.pk_aplicacionEncuesta
+  inner join tbl_tienda
+  on tbl_tienda.pk_tienda = tbl_solucionEncuesta.fk_tienda
+  inner join tbl_tipoEncuestas
+  on tbl_tipoEncuestas.pk_tipoEncuesta = tbl_aplicacionEncuesta.tbl_tipoEncuestas_pk_tipoEncuesta;`;
+  mysqlConnection.query(query,(err, rows, fields)=>{
+    if (!err) {
+      res.json(rows)
+      
+    } else {
+      res.json({
+        status: `error ${err}`
+      })
+    }
+  })
+});
+
+router.post("/encuestas/solucion", async (req, res) => {
   const { encuesta, tienda, pregunta, fecha_menor, fecha_mayor } = req.body;
-  var query = ''
-  var params = ''
+  var query = "";
+  var params = "";
   if (fecha_menor != null) {
-  params = [encuesta, tienda, pregunta, fecha_menor, fecha_mayor]
-  query = `SELECT tbl_tipoEncuestas.pk_tipoEncuesta as pk_encuesta ,tbl_tipoEncuestas.nombre as encuesta ,tbl_tienda.pk_tienda as pk_tienda, tbl_tienda.nombre as almacen,  pregunta, respuesta, fecha
+    params = [encuesta, tienda, pregunta, fecha_menor, fecha_mayor];
+    query = `SELECT tbl_tipoEncuestas.pk_tipoEncuesta as pk_encuesta ,tbl_tipoEncuestas.nombre as encuesta ,tbl_tienda.pk_tienda as pk_tienda, tbl_tienda.nombre as almacen,  pregunta, respuesta, fecha
   from tbl_encuestasXtiendas
   inner join tbl_aplicacionEncuesta
   on tbl_aplicacionEncuesta.pk_aplicacionEncuesta = tbl_encuestasXtiendas.tbl_aplicacionEncuesta_pk_aplicacionEncuesta
@@ -222,7 +245,7 @@ router.get("/encuestas/solucion", async (req, res) => {
   AND (pregunta = '${pregunta}' or '${pregunta}' = 'null')
   AND (fecha between '${fecha_menor}' AND  '${fecha_mayor}' );`;
   } else {
-    params = [encuesta, tienda, pregunta]
+    params = [encuesta, tienda, pregunta];
     query = `SELECT tbl_tipoEncuestas.pk_tipoEncuesta as pk_encuesta,tbl_tipoEncuestas.nombre as encuesta , tbl_tienda.pk_tienda as pk_tienda,tbl_tienda.nombre as almacen,  pregunta, respuesta, fecha
     from tbl_encuestasXtiendas
     inner join tbl_aplicacionEncuesta
@@ -238,7 +261,7 @@ router.get("/encuestas/solucion", async (req, res) => {
     AND (pregunta = '${pregunta}' or '${pregunta}' = 'null');`;
   }
 
-   mysqlConnection.query(query,(err, rows, fields) => {
+  mysqlConnection.query(query, (err, rows, fields) => {
     if (!err) {
       res.json(rows);
     } else {
