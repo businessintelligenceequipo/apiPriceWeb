@@ -212,22 +212,28 @@ router.get("/encuestas/powerbi", async (req, res) => {
   on tbl_tienda.pk_tienda = tbl_solucionEncuesta.fk_tienda
   inner join tbl_tipoEncuestas
   on tbl_tipoEncuestas.pk_tipoEncuesta = tbl_aplicacionEncuesta.tbl_tipoEncuestas_pk_tipoEncuesta;`;
-  mysqlConnection.query(query,(err, rows, fields)=>{
+  mysqlConnection.query(query, (err, rows, fields) => {
     if (!err) {
-      res.json(rows)
-      
+      res.json(rows);
     } else {
       res.json({
-        status: `error ${err}`
-      })
+        status: `error ${err}`,
+      });
     }
-  })
+  });
 });
 
 router.post("/encuestas/solucion", async (req, res) => {
   const { encuesta, tienda, pregunta, fecha_menor, fecha_mayor } = req.body;
   var query = "";
+  var query_respuestas = "";
   var params = "";
+  var contador = 0;
+  var pregunta_iterador = "";
+  var encuesta_iterador = "";
+  query_respuestas = `SELECT respuesta, count(respuesta) as cantidad FROM priceAPP.tbl_solucionEncuesta 
+  WHERE pregunta = '${pregunta}' OR '${pregunta}' = 1
+  group by respuesta order by respuesta;`;
   if (fecha_menor != null) {
     params = [encuesta, tienda, pregunta, fecha_menor, fecha_mayor];
     query = `SELECT tbl_tipoEncuestas.pk_tipoEncuesta as pk_encuesta ,tbl_tipoEncuestas.nombre as encuesta ,tbl_tienda.pk_tienda as pk_tienda, tbl_tienda.nombre as almacen,  pregunta, respuesta, fecha
@@ -261,9 +267,61 @@ router.post("/encuestas/solucion", async (req, res) => {
     AND (pregunta = '${pregunta}' or '${pregunta}' = 'null');`;
   }
 
-  mysqlConnection.query(query, (err, rows, fields) => {
+  mysqlConnection.query(query, (err, rows_general, fields) => {
     if (!err) {
-      res.json(rows);
+      mysqlConnection.query(query_respuestas, (err, rows_barras, fields) => {
+        if (!err) {
+          // encuesta_iterador = rows_general[0].encuesta;
+          // pregunta_iterador = rows_general[0].pregunta;
+          // for (let i = 0; i < rows_general.length; i++) {
+          //   if (
+          //     rows_general[i].encuesta === encuesta_iterador &&
+          //     rows_general[i].pregunta === pregunta_iterador
+          //   ) {
+          //     contador += 1;
+          //     encuesta_iterador = rows_general[i].encuesta;
+          //     pregunta_iterador = rows_general[i].pregunta;
+          //   }
+          // }
+          var result_groupEncuestas = groupBy(rows_general, function (item) {
+            return [item.pk_encuesta,item.pk_tienda, item.fecha];
+          });
+          if (pregunta != null) {
+            res.json({
+              encuestas: rows_general,
+              barras: {
+                labels: [pregunta],
+                datasets: [
+                  {
+                    data: [rows_barras[0].cantidad],
+                    label: rows_barras[0].respuesta,
+                    backgroundColor: ["#94FFB7"],
+                  },
+                  {
+                    data: [rows_barras[1].cantidad],
+                    label: rows_barras[1].respuesta,
+                    backgroundColor: ["#DA6D79"],
+                  },
+                  {
+                    data: [rows_barras[2].cantidad],
+                    label: rows_barras[2].respuesta,
+                    backgroundColor: ["#FFF894"],
+                  },
+                ],
+              },
+              kpi: result_groupEncuestas.length,
+            });
+          } else {
+            res.json({
+              encuestas: rows_general,
+              barras: {},
+              kpi: result_groupEncuestas.length,
+            });
+          }
+        } else {
+          console.log(err);
+        }
+      });
     } else {
       console.log(err);
     }
@@ -455,4 +513,17 @@ function changeStateAsign(id) {
     }
   );
 }
+
+function groupBy(array, f) {
+  var groups = {};
+  array.forEach(function (o) {
+    var group = JSON.stringify(f(o));
+    groups[group] = groups[group] || [];
+    groups[group].push(o);
+  });
+  return Object.keys(groups).map(function (group) {
+    return groups[group];
+  });
+}
+
 module.exports = router;
