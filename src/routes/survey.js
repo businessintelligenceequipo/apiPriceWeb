@@ -227,15 +227,12 @@ router.post("/encuestas/solucion", async (req, res) => {
   const { encuesta, tienda, pregunta, fecha_menor, fecha_mayor } = req.body;
   var query = "";
   var query_respuestas = "";
-  var params = "";
-  var contador = 0;
-  var pregunta_iterador = "";
-  var encuesta_iterador = "";
+  var preguntas_array = [];
+
   query_respuestas = `SELECT respuesta, count(respuesta) as cantidad FROM priceAPP.tbl_solucionEncuesta 
   WHERE pregunta = '${pregunta}' OR '${pregunta}' = 1
   group by respuesta order by respuesta;`;
   if (fecha_menor != null) {
-    params = [encuesta, tienda, pregunta, fecha_menor, fecha_mayor];
     query = `SELECT tbl_tipoEncuestas.pk_tipoEncuesta as pk_encuesta ,tbl_tipoEncuestas.nombre as encuesta ,tbl_tienda.pk_tienda as pk_tienda, tbl_tienda.nombre as almacen,  pregunta, respuesta, fecha
   from tbl_encuestasXtiendas
   inner join tbl_aplicacionEncuesta
@@ -251,7 +248,6 @@ router.post("/encuestas/solucion", async (req, res) => {
   AND (pregunta = '${pregunta}' or '${pregunta}' = 'null')
   AND (fecha between '${fecha_menor}' AND  '${fecha_mayor}' );`;
   } else {
-    params = [encuesta, tienda, pregunta];
     query = `SELECT tbl_tipoEncuestas.pk_tipoEncuesta as pk_encuesta,tbl_tipoEncuestas.nombre as encuesta , tbl_tienda.pk_tienda as pk_tienda,tbl_tienda.nombre as almacen,  pregunta, respuesta, fecha
     from tbl_encuestasXtiendas
     inner join tbl_aplicacionEncuesta
@@ -271,53 +267,77 @@ router.post("/encuestas/solucion", async (req, res) => {
     if (!err) {
       mysqlConnection.query(query_respuestas, (err, rows_barras, fields) => {
         if (!err) {
-          // encuesta_iterador = rows_general[0].encuesta;
-          // pregunta_iterador = rows_general[0].pregunta;
-          // for (let i = 0; i < rows_general.length; i++) {
-          //   if (
-          //     rows_general[i].encuesta === encuesta_iterador &&
-          //     rows_general[i].pregunta === pregunta_iterador
-          //   ) {
-          //     contador += 1;
-          //     encuesta_iterador = rows_general[i].encuesta;
-          //     pregunta_iterador = rows_general[i].pregunta;
-          //   }
-          // }
-          var result_groupEncuestas = groupBy(rows_general, function (item) {
-            return [item.pk_encuesta,item.pk_tienda, item.fecha];
-          });
-          if (pregunta != null) {
-            res.json({
-              encuestas: rows_general,
-              barras: {
-                labels: [pregunta],
-                datasets: [
-                  {
-                    data: [rows_barras[0].cantidad],
-                    label: rows_barras[0].respuesta,
-                    backgroundColor: ["#94FFB7"],
-                  },
-                  {
-                    data: [rows_barras[1].cantidad],
-                    label: rows_barras[1].respuesta,
-                    backgroundColor: ["#DA6D79"],
-                  },
-                  {
-                    data: [rows_barras[2].cantidad],
-                    label: rows_barras[2].respuesta,
-                    backgroundColor: ["#FFF894"],
-                  },
-                ],
-              },
-              kpi: result_groupEncuestas.length,
-            });
-          } else {
-            res.json({
-              encuestas: rows_general,
-              barras: {},
-              kpi: result_groupEncuestas.length,
-            });
-          }
+          mysqlConnection.query(
+            "select distinct pregunta from priceAPP.tbl_solucionEncuesta;",
+            (err, rows_pregunta, fields) => {
+              if (!err) {
+                mysqlConnection.query(
+                  `SELECT distinct tbl_tipoEncuestas_pk_tipoEncuesta as pk_encuesta,tbl_tipoEncuestas.nombre as encuesta 
+                from tbl_encuestasXtiendas
+                inner join tbl_aplicacionEncuesta
+                on tbl_aplicacionEncuesta.pk_aplicacionEncuesta = tbl_encuestasXtiendas.tbl_aplicacionEncuesta_pk_aplicacionEncuesta
+                inner join tbl_solucionEncuesta
+                on tbl_solucionEncuesta.fk_aplicacionEncuesta = tbl_aplicacionEncuesta.pk_aplicacionEncuesta
+                inner join tbl_tienda
+                on tbl_tienda.pk_tienda = tbl_solucionEncuesta.fk_tienda
+                inner join tbl_tipoEncuestas
+                on tbl_tipoEncuestas.pk_tipoEncuesta = tbl_aplicacionEncuesta.tbl_tipoEncuestas_pk_tipoEncuesta;`,
+                  (err, rows_encuestas,fields) => {
+                    if (!err) {
+                      rows_pregunta.forEach((row) => {
+                        preguntas_array.push(row.pregunta);
+                      });
+                      var result_groupEncuestas = groupBy(
+                        rows_general,
+                        function (item) {
+                          return [item.pk_encuesta, item.pk_tienda, item.fecha];
+                        }
+                      );
+                      if (pregunta != null) {
+                        res.json({
+                          encuestas: rows_general,
+                          preguntas: preguntas_array,
+                          encuestas_filtro:rows_encuestas,
+                          barras: {
+                            labels: [pregunta],
+                            datasets: [
+                              {
+                                data: [rows_barras[0].cantidad],
+                                label: rows_barras[0].respuesta,
+                                backgroundColor: ["#94FFB7"],
+                              },
+                              {
+                                data: [rows_barras[1].cantidad],
+                                label: rows_barras[1].respuesta,
+                                backgroundColor: ["#DA6D79"],
+                              },
+                              {
+                                data: [rows_barras[2].cantidad],
+                                label: rows_barras[2].respuesta,
+                                backgroundColor: ["#FFF894"],
+                              },
+                            ],
+                          },
+                          kpi: result_groupEncuestas.length,
+                        });
+                      } else {
+                        res.json({
+                          encuestas: rows_general,
+                          preguntas: preguntas_array,
+                          encuestas_filtro:rows_encuestas,
+                          barras: {},
+                          kpi: result_groupEncuestas.length,
+                        });
+                      }
+                    } else {
+                      res.json({ status: err });
+                    }
+                  }
+                );
+              } else {
+              }
+            }
+          );
         } else {
           console.log(err);
         }
