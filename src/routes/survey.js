@@ -229,10 +229,21 @@ router.post("/encuestas/solucion", async (req, res) => {
   var query_respuestas = "";
   var preguntas_array = [];
 
-  query_respuestas = `SELECT respuesta, count(respuesta) as cantidad FROM priceAPP.tbl_solucionEncuesta 
-  WHERE pregunta = '${pregunta}' OR '${pregunta}' = 1
-  group by respuesta order by respuesta;`;
   if (fecha_menor != null) {
+    query_respuestas = `SELECT respuesta, count(respuesta) as cantidad from tbl_encuestasXtiendas
+    inner join tbl_aplicacionEncuesta
+    on tbl_aplicacionEncuesta.pk_aplicacionEncuesta = tbl_encuestasXtiendas.tbl_aplicacionEncuesta_pk_aplicacionEncuesta
+    inner join tbl_solucionEncuesta
+    on tbl_solucionEncuesta.fk_aplicacionEncuesta = tbl_aplicacionEncuesta.pk_aplicacionEncuesta
+    inner join tbl_tienda
+    on tbl_tienda.pk_tienda = tbl_solucionEncuesta.fk_tienda
+    inner join tbl_tipoEncuestas
+    on tbl_tipoEncuestas.pk_tipoEncuesta = tbl_aplicacionEncuesta.tbl_tipoEncuestas_pk_tipoEncuesta 
+    WHERE (tbl_tipoEncuestas.pk_tipoEncuesta = ${encuesta} OR ${encuesta} IS null) 
+    AND (tbl_tienda.pk_tienda = ${tienda} OR ${tienda} IS null) 
+    AND (pregunta = '${pregunta}' or '${pregunta}' = 'null')
+    AND (fecha between '${fecha_menor}' AND  '${fecha_mayor}' )
+  group by respuesta order by respuesta;`;
     query = `SELECT tbl_tipoEncuestas.pk_tipoEncuesta as pk_encuesta ,tbl_tipoEncuestas.nombre as encuesta ,tbl_tienda.pk_tienda as pk_tienda, tbl_tienda.nombre as almacen,  pregunta, respuesta, fecha
   from tbl_encuestasXtiendas
   inner join tbl_aplicacionEncuesta
@@ -248,6 +259,19 @@ router.post("/encuestas/solucion", async (req, res) => {
   AND (pregunta = '${pregunta}' or '${pregunta}' = 'null')
   AND (fecha between '${fecha_menor}' AND  '${fecha_mayor}' );`;
   } else {
+    query_respuestas = `SELECT respuesta, count(respuesta) as cantidad from tbl_encuestasXtiendas
+    inner join tbl_aplicacionEncuesta
+    on tbl_aplicacionEncuesta.pk_aplicacionEncuesta = tbl_encuestasXtiendas.tbl_aplicacionEncuesta_pk_aplicacionEncuesta
+    inner join tbl_solucionEncuesta
+    on tbl_solucionEncuesta.fk_aplicacionEncuesta = tbl_aplicacionEncuesta.pk_aplicacionEncuesta
+    inner join tbl_tienda
+    on tbl_tienda.pk_tienda = tbl_solucionEncuesta.fk_tienda
+    inner join tbl_tipoEncuestas
+    on tbl_tipoEncuestas.pk_tipoEncuesta = tbl_aplicacionEncuesta.tbl_tipoEncuestas_pk_tipoEncuesta
+    WHERE (tbl_tipoEncuestas.pk_tipoEncuesta = ${encuesta} OR ${encuesta} IS null) 
+  AND (tbl_tienda.pk_tienda = ${tienda} OR ${tienda} IS null) 
+  AND (pregunta = '${pregunta}' or '${pregunta}' = 'null')
+  group by respuesta order by respuesta;`;
     query = `SELECT tbl_tipoEncuestas.pk_tipoEncuesta as pk_encuesta,tbl_tipoEncuestas.nombre as encuesta , tbl_tienda.pk_tienda as pk_tienda,tbl_tienda.nombre as almacen,  pregunta, respuesta, fecha
     from tbl_encuestasXtiendas
     inner join tbl_aplicacionEncuesta
@@ -282,7 +306,7 @@ router.post("/encuestas/solucion", async (req, res) => {
                 on tbl_tienda.pk_tienda = tbl_solucionEncuesta.fk_tienda
                 inner join tbl_tipoEncuestas
                 on tbl_tipoEncuestas.pk_tipoEncuesta = tbl_aplicacionEncuesta.tbl_tipoEncuestas_pk_tipoEncuesta;`,
-                  (err, rows_encuestas,fields) => {
+                  (err, rows_encuestas, fields) => {
                     if (!err) {
                       rows_pregunta.forEach((row) => {
                         preguntas_array.push(row.pregunta);
@@ -293,11 +317,11 @@ router.post("/encuestas/solucion", async (req, res) => {
                           return [item.pk_encuesta, item.pk_tienda, item.fecha];
                         }
                       );
-                      if (pregunta != null) {
+                      if (pregunta != null && rows_barras.length > 0) {
                         res.json({
                           encuestas: rows_general,
                           preguntas: preguntas_array,
-                          encuestas_filtro:rows_encuestas,
+                          encuestas_filtro: rows_encuestas,
                           barras: {
                             labels: [pregunta],
                             datasets: [
@@ -324,7 +348,7 @@ router.post("/encuestas/solucion", async (req, res) => {
                         res.json({
                           encuestas: rows_general,
                           preguntas: preguntas_array,
-                          encuestas_filtro:rows_encuestas,
+                          encuestas_filtro: rows_encuestas,
                           barras: {},
                           kpi: result_groupEncuestas.length,
                         });
