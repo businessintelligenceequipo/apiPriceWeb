@@ -25,6 +25,7 @@ app.use(require("./routes/ubicacion"));
 app.use(require("./routes/tiendas"));
 app.use(require("./routes/survey"));
 app.use(require("./routes/rotacion"));
+app.use(require("./routes/corner"));
 
 // Starting the server
 app.listen(app.get("port"), () => {
