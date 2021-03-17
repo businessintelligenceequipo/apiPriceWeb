@@ -308,9 +308,10 @@ router.post("/encuestas/solucion", async (req, res) => {
                 on tbl_tipoEncuestas.pk_tipoEncuesta = tbl_aplicacionEncuesta.tbl_tipoEncuestas_pk_tipoEncuesta;`,
                   (err, rows_encuestas, fields) => {
                     if (!err) {
-                      rows_pregunta.forEach((row) => {
-                        preguntas_array.push(row.pregunta);
-                      });
+                      var bueno = {};
+                      var regular = {};
+                      var malo = {};
+
                       var result_groupEncuestas = groupBy(
                         rows_general,
                         function (item) {
@@ -318,6 +319,27 @@ router.post("/encuestas/solucion", async (req, res) => {
                         }
                       );
                       if (pregunta != null && rows_barras.length > 0) {
+                        rows_barras.forEach((row) => {
+                          if (row.respuesta == "Bueno") {
+                            bueno = {
+                              data: [row.cantidad],
+                              label: [row.respuesta],
+                              backgroundColor: ["#94FFB7"],
+                            };
+                          } else if (row.respuesta == "Regular") {
+                            regular = {
+                              data: [row.cantidad],
+                              label: [row.respuesta],
+                              backgroundColor: ["#94FFB7"],
+                            };
+                          } else {
+                            malo = {
+                              data: [row.cantidad],
+                              label: [row.respuesta],
+                              backgroundColor: ["#FFF894"],
+                            };
+                          }
+                        });
                         res.json({
                           encuestas: rows_general,
                           preguntas: preguntas_array,
@@ -325,21 +347,9 @@ router.post("/encuestas/solucion", async (req, res) => {
                           barras: {
                             labels: [pregunta],
                             datasets: [
-                              {
-                                data: [rows_barras[0].cantidad],
-                                label: rows_barras[0].respuesta,
-                                backgroundColor: ["#94FFB7"],
-                              },
-                              {
-                                data: [rows_barras[1].cantidad],
-                                label: rows_barras[1].respuesta,
-                                backgroundColor: ["#DA6D79"],
-                              },
-                              {
-                                data: [rows_barras[2].cantidad],
-                                label: rows_barras[2].respuesta,
-                                backgroundColor: ["#FFF894"],
-                              },
+                              bueno,
+                              regular,
+                              malo,
                             ],
                           },
                           kpi: result_groupEncuestas.length,
