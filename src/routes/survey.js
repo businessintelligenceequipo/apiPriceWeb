@@ -311,7 +311,9 @@ router.post("/encuestas/solucion", async (req, res) => {
                       var bueno = {};
                       var regular = {};
                       var malo = {};
-
+                      rows_pregunta.forEach(pregunta => {
+                        preguntas_array.push(pregunta.pregunta)
+                      });
                       var result_groupEncuestas = groupBy(
                         rows_general,
                         function (item) {
