@@ -308,11 +308,23 @@ router.post("/encuestas/solucion", async (req, res) => {
                 on tbl_tipoEncuestas.pk_tipoEncuesta = tbl_aplicacionEncuesta.tbl_tipoEncuestas_pk_tipoEncuesta;`,
                   (err, rows_encuestas, fields) => {
                     if (!err) {
-                      var bueno = {};
-                      var regular = {};
-                      var malo = {};
-                      rows_pregunta.forEach(pregunta => {
-                        preguntas_array.push(pregunta.pregunta)
+                      var bueno = {
+                        data: [0],
+                        label: ["Bueno"],
+                        backgroundColor: ["#94FFB7"],
+                      };
+                      var regular = {
+                        data: [0],
+                        label: ["Regular"],
+                        backgroundColor: ["#FFF894"],
+                      };
+                      var malo = {
+                        data: [0],
+                        label: ["Malo"],
+                        backgroundColor: ["#DA6D79"],
+                      };
+                      rows_pregunta.forEach((pregunta) => {
+                        preguntas_array.push(pregunta.pregunta);
                       });
                       var result_groupEncuestas = groupBy(
                         rows_general,
@@ -332,13 +344,13 @@ router.post("/encuestas/solucion", async (req, res) => {
                             regular = {
                               data: [row.cantidad],
                               label: [row.respuesta],
-                              backgroundColor: ["#94FFB7"],
+                              backgroundColor: ["#FFF894"],
                             };
                           } else {
                             malo = {
                               data: [row.cantidad],
                               label: [row.respuesta],
-                              backgroundColor: ["#FFF894"],
+                              backgroundColor: ["#DA6D79"],
                             };
                           }
                         });
@@ -348,11 +360,7 @@ router.post("/encuestas/solucion", async (req, res) => {
                           encuestas_filtro: rows_encuestas,
                           barras: {
                             labels: [pregunta],
-                            datasets: [
-                              bueno,
-                              regular,
-                              malo,
-                            ],
+                            datasets: [bueno, regular, malo],
                           },
                           kpi: result_groupEncuestas.length,
                         });
