@@ -141,6 +141,7 @@ function getRotacion(referencias, saldos, corner) {
             SEGMENTO: ref["d_segmento"],
             TALLA: ref["talla"],
             COLOR: sal["d_color_proveedor"],
+            CABECERA: true
           },
         });
         data_general = {
