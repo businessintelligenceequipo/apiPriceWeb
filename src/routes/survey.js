@@ -228,8 +228,20 @@ router.post("/encuestas/solucion", async (req, res) => {
   var query = "";
   var query_respuestas = "";
   var preguntas_array = [];
-
+  var query_preguntas = "";
   if (fecha_menor != null) {
+    query_preguntas = `select distinct pregunta from priceAPP.tbl_encuestasXtiendas
+  inner join tbl_aplicacionEncuesta
+  on tbl_aplicacionEncuesta.pk_aplicacionEncuesta = tbl_encuestasXtiendas.tbl_aplicacionEncuesta_pk_aplicacionEncuesta
+  inner join tbl_solucionEncuesta
+  on tbl_solucionEncuesta.fk_aplicacionEncuesta = tbl_aplicacionEncuesta.pk_aplicacionEncuesta
+  inner join tbl_tienda
+  on tbl_tienda.pk_tienda = tbl_solucionEncuesta.fk_tienda
+  inner join tbl_tipoEncuestas
+  on tbl_tipoEncuestas.pk_tipoEncuesta = tbl_aplicacionEncuesta.tbl_tipoEncuestas_pk_tipoEncuesta
+  WHERE (tbl_tipoEncuestas.pk_tipoEncuesta = ${encuesta} OR ${encuesta} IS null)
+  AND (tbl_tienda.pk_tienda = ${tienda} OR ${tienda} IS null)
+  AND (fecha between '${fecha_menor}' AND  '${fecha_mayor}' );`;
     query_respuestas = `SELECT respuesta, count(respuesta) as cantidad from tbl_encuestasXtiendas
     inner join tbl_aplicacionEncuesta
     on tbl_aplicacionEncuesta.pk_aplicacionEncuesta = tbl_encuestasXtiendas.tbl_aplicacionEncuesta_pk_aplicacionEncuesta
@@ -259,6 +271,17 @@ router.post("/encuestas/solucion", async (req, res) => {
   AND (pregunta = '${pregunta}' or '${pregunta}' = 'null')
   AND (fecha between '${fecha_menor}' AND  '${fecha_mayor}' );`;
   } else {
+    query_preguntas = `select distinct pregunta from priceAPP.tbl_encuestasXtiendas
+  inner join tbl_aplicacionEncuesta
+  on tbl_aplicacionEncuesta.pk_aplicacionEncuesta = tbl_encuestasXtiendas.tbl_aplicacionEncuesta_pk_aplicacionEncuesta
+  inner join tbl_solucionEncuesta
+  on tbl_solucionEncuesta.fk_aplicacionEncuesta = tbl_aplicacionEncuesta.pk_aplicacionEncuesta
+  inner join tbl_tienda
+  on tbl_tienda.pk_tienda = tbl_solucionEncuesta.fk_tienda
+  inner join tbl_tipoEncuestas
+  on tbl_tipoEncuestas.pk_tipoEncuesta = tbl_aplicacionEncuesta.tbl_tipoEncuestas_pk_tipoEncuesta
+  WHERE (tbl_tipoEncuestas.pk_tipoEncuesta = ${encuesta} OR ${encuesta} IS null)
+  AND (tbl_tienda.pk_tienda = ${tienda} OR ${tienda} IS null);`;
     query_respuestas = `SELECT respuesta, count(respuesta) as cantidad from tbl_encuestasXtiendas
     inner join tbl_aplicacionEncuesta
     on tbl_aplicacionEncuesta.pk_aplicacionEncuesta = tbl_encuestasXtiendas.tbl_aplicacionEncuesta_pk_aplicacionEncuesta
@@ -292,7 +315,7 @@ router.post("/encuestas/solucion", async (req, res) => {
       mysqlConnection.query(query_respuestas, (err, rows_barras, fields) => {
         if (!err) {
           mysqlConnection.query(
-            "select distinct pregunta from priceAPP.tbl_solucionEncuesta;",
+            query_preguntas,
             (err, rows_pregunta, fields) => {
               if (!err) {
                 mysqlConnection.query(
@@ -334,7 +357,10 @@ router.post("/encuestas/solucion", async (req, res) => {
                       );
                       if (pregunta != null && rows_barras.length > 0) {
                         rows_barras.forEach((row) => {
-                          if (row.respuesta == "Bueno") {
+                          if (
+                            row.respuesta == "Bueno" ||
+                            row.respuesta == "Buena"
+                          ) {
                             bueno = {
                               data: [row.cantidad],
                               label: [row.respuesta],
