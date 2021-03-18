@@ -230,18 +230,8 @@ router.post("/encuestas/solucion", async (req, res) => {
   var preguntas_array = [];
   var query_preguntas = "";
   if (fecha_menor != null) {
-    query_preguntas = `select distinct pregunta from priceAPP.tbl_encuestasXtiendas
-  inner join tbl_aplicacionEncuesta
-  on tbl_aplicacionEncuesta.pk_aplicacionEncuesta = tbl_encuestasXtiendas.tbl_aplicacionEncuesta_pk_aplicacionEncuesta
-  inner join tbl_solucionEncuesta
-  on tbl_solucionEncuesta.fk_aplicacionEncuesta = tbl_aplicacionEncuesta.pk_aplicacionEncuesta
-  inner join tbl_tienda
-  on tbl_tienda.pk_tienda = tbl_solucionEncuesta.fk_tienda
-  inner join tbl_tipoEncuestas
-  on tbl_tipoEncuestas.pk_tipoEncuesta = tbl_aplicacionEncuesta.tbl_tipoEncuestas_pk_tipoEncuesta
-  WHERE (tbl_tipoEncuestas.pk_tipoEncuesta = ${encuesta} OR ${encuesta} IS null)
-  AND (tbl_tienda.pk_tienda = ${tienda} OR ${tienda} IS null)
-  AND (fecha between '${fecha_menor}' AND  '${fecha_mayor}' );`;
+    query_preguntas = `SELECT *  FROM priceAPP.tbl_preguntaXEncuenta
+    WHERE (pk_tipoEncuesta = ${encuesta} OR ${encuesta} IS null);`;
     query_respuestas = `SELECT respuesta, count(respuesta) as cantidad from tbl_encuestasXtiendas
     inner join tbl_aplicacionEncuesta
     on tbl_aplicacionEncuesta.pk_aplicacionEncuesta = tbl_encuestasXtiendas.tbl_aplicacionEncuesta_pk_aplicacionEncuesta
@@ -271,17 +261,8 @@ router.post("/encuestas/solucion", async (req, res) => {
   AND (pregunta = '${pregunta}' or '${pregunta}' = 'null')
   AND (fecha between '${fecha_menor}' AND  '${fecha_mayor}' );`;
   } else {
-    query_preguntas = `select distinct pregunta from priceAPP.tbl_encuestasXtiendas
-  inner join tbl_aplicacionEncuesta
-  on tbl_aplicacionEncuesta.pk_aplicacionEncuesta = tbl_encuestasXtiendas.tbl_aplicacionEncuesta_pk_aplicacionEncuesta
-  inner join tbl_solucionEncuesta
-  on tbl_solucionEncuesta.fk_aplicacionEncuesta = tbl_aplicacionEncuesta.pk_aplicacionEncuesta
-  inner join tbl_tienda
-  on tbl_tienda.pk_tienda = tbl_solucionEncuesta.fk_tienda
-  inner join tbl_tipoEncuestas
-  on tbl_tipoEncuestas.pk_tipoEncuesta = tbl_aplicacionEncuesta.tbl_tipoEncuestas_pk_tipoEncuesta
-  WHERE (tbl_tipoEncuestas.pk_tipoEncuesta = ${encuesta} OR ${encuesta} IS null)
-  AND (tbl_tienda.pk_tienda = ${tienda} OR ${tienda} IS null);`;
+    query_preguntas = `SELECT *  FROM priceAPP.tbl_preguntaXEncuenta
+    WHERE (pk_tipoEncuesta = ${encuesta} OR ${encuesta} IS null);`;
     query_respuestas = `SELECT respuesta, count(respuesta) as cantidad from tbl_encuestasXtiendas
     inner join tbl_aplicacionEncuesta
     on tbl_aplicacionEncuesta.pk_aplicacionEncuesta = tbl_encuestasXtiendas.tbl_aplicacionEncuesta_pk_aplicacionEncuesta
