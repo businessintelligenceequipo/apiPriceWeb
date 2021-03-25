@@ -269,7 +269,7 @@ router.post("/encuestas/solucion", async (req, res) => {
     inner join tbl_solucionEncuesta
     on tbl_solucionEncuesta.fk_aplicacionEncuesta = tbl_aplicacionEncuesta.pk_aplicacionEncuesta
     inner join tbl_tienda
-    on tbl_tienda.pk_tienda = tbl_solucionEncuesta.fk_tienda
+    on tbl_tienda.pk_tienda = tbl_solucionEncuesta.fk_tienda 
     inner join tbl_tipoEncuestas
     on tbl_tipoEncuestas.pk_tipoEncuesta = tbl_aplicacionEncuesta.tbl_tipoEncuestas_pk_tipoEncuesta
     WHERE (tbl_tipoEncuestas.pk_tipoEncuesta = ${encuesta} OR ${encuesta} IS null) 

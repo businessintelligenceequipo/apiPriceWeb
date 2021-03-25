@@ -21,7 +21,6 @@ app.set("port", process.env.PORT || 3000);
 app.use(express.json());
 
 // Routes
-app.use(require("./routes/usuario"))
 app.use(require("./routes/ubicacion"));
 app.use(require("./routes/tiendas"));
 app.use(require("./routes/survey"));
