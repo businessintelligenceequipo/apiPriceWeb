@@ -1,13 +1,13 @@
 const verifyToken = {};
 const jwt = require('jsonwebtoken');
-const { use } = require('../routes');
+
 
 verifyToken.verificarToken = async (req, res, next) => {
 
     try {
         let { authorization } = req.headers;
         
-        const user = jwt.verify(authorization, 'clave_secreta');
+        const user = jwt.verify(authorization, 'secret_token');
         if(user){
             req.usu = user.data;
             next();

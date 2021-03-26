@@ -3,7 +3,7 @@ const verificaRol = {};
 verificaRol.verificarRol = async (req, res, next) => {
     try {
         if (req.usu) {
-            if (req.usu.rol === 'administrador') {
+            if (req.usu.rol === 'administrador' || 'Directivo') {
                 next();
             } else {
                 return res.status(400).json({

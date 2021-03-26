@@ -1,12 +1,14 @@
-const controllerUsuarios = {};
 const express = require("express");
 const mysqlConnection = require("../database");
 const router = express.Router();
-const bcryp = require("bcrypt");
-const pool = require("../database");
+const bcrypt = require("bcrypt-nodejs");
 const jwt = require("jsonwebtoken");
+const { verificarToken } = require('../middlewares/verificarToken');
 
-router.post("/signup", (req, res) => {
+
+
+router.post("/signup", [verificarToken],(req, res ) => {
+  
   const data = {
     identificacion: req.body.identificacion,
     nombre: req.body.nombre,
@@ -15,22 +17,28 @@ router.post("/signup", (req, res) => {
     tienda: req.body.tienda,
     usuario: req.body.usuario,
     correo: req.body.correo,
-    password: bcryp.hashSync(req.body.password, 10),
+    password: req.body.password,
   };
-
-  mysqlConnection.query(
-    "INSERT INTO tbl_usuarios set ?",
-    [data],
-    (err, rows, fields) => {
-      if (!err) {
-        res.json({ status: "Registro existoso" });
-      } else {
-        return res.json({
-          status: err["code"],
-        });
-      }
-    }
-  );
+  bcrypt.genSalt(10, (err, salt) => {
+    if (err) return err;
+    bcrypt.hash(data.password, salt, null, async (err, hash) => {
+      if (err) return err;
+      data.password = hash;
+      mysqlConnection.query(
+        "INSERT INTO tbl_usuarios set ?",
+        [data],
+        (err, rows, fields) => {
+          if (!err) {
+            res.json({ status: "Registro existoso" });
+          } else {
+            return res.json({
+              status: err["code"],
+            });
+          }
+        }
+      );
+    });
+  });
 });
 
 router.get("/usuarios", (req, res) => {
@@ -79,23 +87,27 @@ router.post("/login", async (req, res) => {
         return res.json({
           status: "Usuario incorrecto",
         });
-      }
-      //   if (bcryp.compareSync(password, rows[0].password)) {
-      console.log(bcryp.compareSync(password, rows[0].password));
-      const usu = jwt.sign({ data: rows }, "secret_token", {
-        expiresIn: "12h",
-      });
+      } else {
+        bcrypt.compare(password, rows[0].password, (err, isMatch) => {
+          if (err)
+            return res.status(200).send({
+              message: `Error ${err}`,
+            });
+          if (!isMatch)
+            return res.status(200).send({
+              message: `Error de contraseña`,
+            });
+          const usu = jwt.sign({ data: rows }, "secret_token", {
+            expiresIn: "12h",
+          });
 
-      return res.json({
-        status: true,
-        token: usu,
-        user: rows,
-      });
-      //   } else {
-      //     return res.json({
-      //       status: "Contraseña Incorrecta",
-      //     });
-      //   }
+          return res.json({
+            status: true,
+            token: usu,
+            user: rows,
+          });
+        });
+      }
     }
   );
 });
@@ -107,11 +119,11 @@ router.post("/usuario/update/:id", (req, res) => {
 
   mysqlConnection.query(query, [data, id], (err, rows, fields) => {
     if (!err) {
-        if(rows.affectedRows > 0){
-            res.json({ status: "Usuario actualizado" });
-        }else{
-            res.json({ status: "Usuario no registrado" });
-        }
+      if (rows.affectedRows > 0) {
+        res.json({ status: "Usuario actualizado" });
+      } else {
+        res.json({ status: "Usuario no registrado" });
+      }
     } else {
       res.json(err);
     }
@@ -124,12 +136,11 @@ router.post("/usuario/delete/:id", (req, res) => {
 
   mysqlConnection.query(query, [id], (err, rows, fields) => {
     if (!err) {
-        if(rows.affectedRows > 0){
-            res.json({ status: "Registro Eliminado" });
-        }else{
-            res.json({ status: "Usuario no registrado" });
-        }
-      
+      if (rows.affectedRows > 0) {
+        res.json({ status: "Registro Eliminado" });
+      } else {
+        res.json({ status: "Usuario no registrado" });
+      }
     } else {
       res.json(err);
     }
