@@ -3,12 +3,10 @@ const mysqlConnection = require("../database");
 const router = express.Router();
 const bcrypt = require("bcrypt-nodejs");
 const jwt = require("jsonwebtoken");
-const { verificarToken } = require('../middlewares/verificarToken');
+const { verificarToken } = require("../middlewares/verificarToken");
+const {verificarRolAdministrador, verificarRolDirectivo} = require("../middlewares/verificarRol")
 
-
-
-router.post("/signup", [verificarToken],(req, res ) => {
-  
+router.post("/signup", [verificarToken,verificarRolDirectivo], (req, res) => {
   const data = {
     identificacion: req.body.identificacion,
     nombre: req.body.nombre,
@@ -41,7 +39,7 @@ router.post("/signup", [verificarToken],(req, res ) => {
   });
 });
 
-router.get("/usuarios", (req, res) => {
+router.get("/usuarios", [verificarToken,verificarRolDirectivo], (req, res) => {
   const query = `SELECT identificacion, u.nombre, apellidos, r.nombre as rol, t.nombre as tienda , correo FROM tbl_usuarios as u
     inner join tbl_tienda as t
     on t.pk_tienda = u.tienda
@@ -56,7 +54,18 @@ router.get("/usuarios", (req, res) => {
   });
 });
 
-router.get("/usuario/:id", (req, res) => {
+router.get("/roles/usuarios", [verificarToken,verificarRolDirectivo], (req, res) => {
+  const query = `SELECT * FROM tbl_roles;`;
+  mysqlConnection.query(query, (err, rows, fields) => {
+    if (!err) {
+      res.json(rows);
+    } else {
+      res.json(err);
+    }
+  });
+});
+
+router.get("/usuario/:id", [verificarToken,verificarRolDirectivo], (req, res) => {
   let id = req.params.id;
   const query = `SELECT identificacion, u.nombre, apellidos, r.nombre as rol, t.nombre as tienda , correo FROM tbl_usuarios as u
       inner join tbl_tienda as t
@@ -97,14 +106,34 @@ router.post("/login", async (req, res) => {
             return res.status(200).send({
               message: `Error de contraseña`,
             });
-          const usu = jwt.sign({ data: rows }, "secret_token", {
-            expiresIn: "12h",
-          });
+          const usu = jwt.sign(
+            {
+              data: {
+                nombre: rows[0].nombre,
+                apellido: rows[0].apellidos,
+                rol: rows[0].rol,
+                tienda: rows[0].tienda,
+                usuario: rows[0].usuario,
+                correo: rows[0].correo,
+              },
+            },
+            "secret_token",
+            {
+              expiresIn: "12h",
+            }
+          );
 
           return res.json({
             status: true,
             token: usu,
-            user: rows,
+            user: {
+              nombre: rows[0].nombre,
+              apellido: rows[0].apellidos,
+              rol: rows[0].rol,
+              tienda: rows[0].tienda,
+              usuario: rows[0].usuario,
+              correo: rows[0].correo,
+            },
           });
         });
       }
@@ -112,7 +141,7 @@ router.post("/login", async (req, res) => {
   );
 });
 
-router.post("/usuario/update/:id", (req, res) => {
+router.post("/usuario/update/:id", [verificarToken,verificarRolDirectivo], (req, res) => {
   let id = req.params.id;
   const data = req.body;
   var query = "UPDATE tbl_usuarios SET ? WHERE identificacion= ?";
@@ -130,7 +159,7 @@ router.post("/usuario/update/:id", (req, res) => {
   });
 });
 
-router.post("/usuario/delete/:id", (req, res) => {
+router.post("/usuario/delete/:id", [verificarToken,verificarRolDirectivo], (req, res) => {
   let id = req.params.id;
   var query = "DELETE FROM tbl_usuarios  WHERE identificacion= ?";
 

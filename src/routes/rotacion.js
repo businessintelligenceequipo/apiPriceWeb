@@ -8,6 +8,11 @@ const xlsx = require("xlsx");
 const mysqlConnection = require("../database");
 const results = [];
 const rotation = [];
+const { verificarToken } = require("../middlewares/verificarToken");
+const {
+  verificarRolAdministrador,
+  verificarRolDirectivo,
+} = require("../middlewares/verificarRol");
 
 // fs.createReadStream("Sal_vsVent Febrero.csv")
 //   .pipe(csv({ delimiter: ";" }))
@@ -15,7 +20,7 @@ const rotation = [];
 //   .on("end", () => {
 //     console.log(results[0]);
 //   });
-router.get("/rotacion/invetario", (req, res) => {
+router.get("/rotacion/invetario",[verificarToken, verificarRolDirectivo, verificarRolAdministrador], (req, res) => {
   const ruta = "ARCHIVO REFERENCIAS.xlsx";
   fs.createReadStream("Sal_vsVent Febrero - copia.csv")
     .pipe(csv())

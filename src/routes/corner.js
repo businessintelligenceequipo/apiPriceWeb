@@ -3,7 +3,13 @@ const mysql = require("mysql");
 const mysqlConnection = require("../database");
 const router = express.Router();
 
-router.get("/corner/all", (req, res) => {
+const { verificarToken } = require("../middlewares/verificarToken");
+const {
+  verificarRolAdministrador,
+  verificarRolDirectivo,
+} = require("../middlewares/verificarRol");
+
+router.get("/corner/all",[verificarToken,verificarRolDirectivo, verificarRolAdministrador], (req, res) => {
   mysqlConnection.query(
     "SELECT * FROM priceAPP.corner",
     (err, rows, fields) => {
@@ -16,7 +22,7 @@ router.get("/corner/all", (req, res) => {
   );
 });
 
-router.get("/corner/:id", (req, res) => {
+router.get("/corner/:id",[verificarToken,verificarRolDirectivo, verificarRolAdministrador], (req, res) => {
   const { id } = req.params;
   mysqlConnection.query(
     "SELECT * FROM priceAPP.corner WHERE codigo = ? ",
@@ -31,7 +37,7 @@ router.get("/corner/:id", (req, res) => {
   );
 });
 
-router.post("/corner/add", (req, res) => {
+router.post("/corner/add",[verificarToken,verificarRolDirectivo], (req, res) => {
   const { codigo, descuento } = req.body;
   const query = `INSERT INTO priceAPP.corner (CODIGO,DESCUENTO) values (?,?)`;
   mysqlConnection.query(query, [codigo, descuento], (err, rows, fields) => {
@@ -43,7 +49,7 @@ router.post("/corner/add", (req, res) => {
   });
 });
 
-router.post("/corner/update/:id", (req, res) => {
+router.post("/corner/update/:id",[verificarToken,verificarRolDirectivo], (req, res) => {
   const { descuento } = req.body;
   const { id } = req.params;
   const query = "UPDATE priceAPP.corner SET DESCUENTO=? where CODIGO=? ;";
@@ -57,7 +63,7 @@ router.post("/corner/update/:id", (req, res) => {
   });
 });
 
-router.post("/corner/delete/:id", (req, res) => {
+router.post("/corner/delete/:id",[verificarToken,verificarRolDirectivo], (req, res) => {
     const { id } = req.params;
     const query = "DELETE FROM priceAPP.corner where CODIGO=? ;";
   
