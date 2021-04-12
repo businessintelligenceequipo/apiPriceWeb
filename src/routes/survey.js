@@ -7,7 +7,9 @@ const {
   verificarRolAdministrador,
   verificarRolDirectivo,
 } = require("../middlewares/verificarRol");
+const upload = require('../services/image-upload');
 
+const singleUpload = upload.single('image');
 const mysqlConnection = require("../database.js");
 
 // GET all Tipo Encuestas

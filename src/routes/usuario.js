@@ -87,10 +87,10 @@ router.get("/usuario/:id", [verificarToken,verificarRolDirectivo], (req, res) =>
 });
 
 router.post("/login", async (req, res) => {
-  const { usuario, password } = req.body;
+  const { usuario,correo, password } = req.body;
 
   mysqlConnection.query(
-    `SELECT * FROM tbl_usuarios WHERE usuario = "${usuario}"`,
+    `SELECT * FROM tbl_usuarios WHERE usuario = "${usuario}" or correo = "${correo}"`,
     (err, rows, fields) => {
       if (rows.length == 0) {
         return res.json({

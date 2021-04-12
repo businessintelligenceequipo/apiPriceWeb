@@ -9,7 +9,7 @@ const {
   verificarRolDirectivo,
 } = require("../middlewares/verificarRol");
 
-router.get("/corner/all",[verificarToken,verificarRolDirectivo, verificarRolAdministrador], (req, res) => {
+router.get("/corner/all", (req, res) => {
   mysqlConnection.query(
     "SELECT * FROM priceAPP.corner",
     (err, rows, fields) => {
@@ -22,7 +22,7 @@ router.get("/corner/all",[verificarToken,verificarRolDirectivo, verificarRolAdmi
   );
 });
 
-router.get("/corner/:id",[verificarToken,verificarRolDirectivo, verificarRolAdministrador], (req, res) => {
+router.get("/corner/:id", (req, res) => {
   const { id } = req.params;
   mysqlConnection.query(
     "SELECT * FROM priceAPP.corner WHERE codigo = ? ",
