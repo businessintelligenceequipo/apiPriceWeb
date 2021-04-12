@@ -13,7 +13,7 @@ const singleUpload = upload.single('image');
 const mysqlConnection = require("../database.js");
 
 // GET all Tipo Encuestas
-router.get("/tipoencuestas", [verificarToken], (req, res) => {
+router.get("/tipoencuestas", (req, res) => {
   mysqlConnection.query(
     "SELECT pk_tipoEncuesta, nombre, descripcion FROM tbl_tipoEncuestas",
     (err, rows, fields) => {
@@ -27,7 +27,7 @@ router.get("/tipoencuestas", [verificarToken], (req, res) => {
 });
 
 // GET An encuesta
-router.get("/encuesta/:id", [verificarToken], (req, res) => {
+router.get("/encuesta/:id", (req, res) => {
   var result_array = [];
   var ids_pregunta = [];
   var preguntas_array = [];
@@ -70,7 +70,6 @@ router.get("/encuesta/:id", [verificarToken], (req, res) => {
 // INSERT An tipo_encuesta
 router.post(
   "/encuesta/save",
-  [verificarToken, verificarRolAdministrador, verificarRolDirectivo],
   (req, res) => {
     const { nombre, descripcion, preguntas } = req.body;
     console.log(preguntas);
@@ -96,7 +95,6 @@ router.post(
 // Update An tipo_encuesta
 router.post(
   "/encuesta/update/:id",
-  [verificarToken, verificarRolAdministrador, verificarRolDirectivo],
   (req, res) => {
     const { nombre, descripcion, preguntas } = req.body;
     const { id } = req.params;
@@ -123,7 +121,6 @@ router.post(
 
 router.post(
   "/encuesta/asignar",
-  [verificarToken, verificarRolAdministrador, verificarRolDirectivo],
   (req, res) => {
     const { pk_tienda, pk_tipoEncuesta, fechaApertura, fechaCierre } = req.body;
     const params = {
@@ -145,7 +142,7 @@ router.post(
   }
 );
 
-router.get("/encuestas/asignadas", [verificarToken], (req, res) => {
+router.get("/encuestas/asignadas", (req, res) => {
   let id_tienda = req.usu.tienda;
   var CURRENT_TIMESTAMP = moment()
     .tz("America/Bogota")
@@ -171,7 +168,7 @@ router.get("/encuestas/asignadas", [verificarToken], (req, res) => {
   });
 });
 
-router.get("/encuestas/asignadas/tienda/:id", [verificarToken], (req, res) => {
+router.get("/encuestas/asignadas/tienda/:id", (req, res) => {
   const { id } = req.params;
   const query = `SELECT tbl_aplicacionEncuesta.pk_aplicacionEncuesta, tbl_tipoEncuestas.pk_tipoEncuesta, tbl_tipoEncuestas.nombre as encuesta, tbl_tipoEncuestas.descripcion,tbl_tienda_pk_tienda, tbl_tienda.nombre as tienda,
   tbl_aplicacionEncuesta.fechaApertura, tbl_aplicacionEncuesta.fechaCierre
@@ -193,7 +190,7 @@ router.get("/encuestas/asignadas/tienda/:id", [verificarToken], (req, res) => {
   });
 });
 
-router.post("/encuesta/llenar", [verificarToken], (req, res) => {
+router.post("/encuesta/llenar", (req, res) => {
   const { pk_aplicacionEncuesta, pk_tienda, solucion } = req.body;
   var CURRENT_TIMESTAMP = moment()
     .tz("America/Bogota")
@@ -246,7 +243,6 @@ router.get("/encuestas/powerbi", async (req, res) => {
 
 router.post(
   "/encuestas/solucion",
-  [verificarToken, verificarRolAdministrador, verificarRolDirectivo],
   async (req, res) => {
     const { encuesta, tienda, pregunta, fecha_menor, fecha_mayor } = req.body;
     var query = "";
@@ -430,7 +426,6 @@ router.post(
 
 router.post(
   "/encuesta/delete/:id",
-  [verificarToken, verificarRolAdministrador, verificarRolDirectivo],
   (req, res) => {
     const { id } = req.params;
     const query_select = `SELECT *  FROM priceAPP.tbl_aplicacionEncuesta
@@ -456,7 +451,6 @@ router.post(
 
 router.post(
   "/encuesta/edit/:id",
-  [verificarToken, verificarRolAdministrador, verificarRolDirectivo],
   (req, res) => {
     const { id } = req.params;
     const { nombre, descripcion, preguntas } = req.body;
@@ -491,7 +485,6 @@ router.post(
 
 router.post(
   "/encuesta/asign/delete/:id",
-  [verificarToken, verificarRolAdministrador, verificarRolDirectivo],
   (req, res) => {
     const { id } = req.params;
     const { pk_tienda } = req.body;
@@ -511,7 +504,6 @@ router.post(
 
 router.post(
   "/encuesta/asignar/edit/:id",
-  [verificarToken, verificarRolAdministrador, verificarRolDirectivo],
   (req, res) => {
     const { pk_tienda, pk_tipoEncuesta, fechaApertura, fechaCierre } = req.body;
     const { id } = req.params;

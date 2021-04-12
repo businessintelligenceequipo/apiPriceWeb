@@ -9,7 +9,7 @@ const {
 } = require("../middlewares/verificarRol");
 
 // GET all departamentos
-router.get('/deptos/all', [verificarToken], (req, res) => {
+router.get('/deptos/all', (req, res) => {
     mysqlConnection.query('SELECT * FROM tbl_departamento', (err, rows, fields) => {
       if(!err) {
         res.json(rows);
@@ -20,7 +20,7 @@ router.get('/deptos/all', [verificarToken], (req, res) => {
   });
 
 // GET all municipios
-router.get('/municipios/all',[verificarToken], (req, res) => {
+router.get('/municipios/all', (req, res) => {
   mysqlConnection.query('SELECT * FROM tbl_municipio order by nombre', (err, rows, fields) => {
     if(!err) {
       res.json(rows);
@@ -31,7 +31,7 @@ router.get('/municipios/all',[verificarToken], (req, res) => {
 });
 
 // GET A ZONAS
-router.get('/zona/all',[verificarToken], (req, res) => {
+router.get('/zona/all', (req, res) => {
   mysqlConnection.query('SELECT * FROM tbl_zona', (err, rows, fields) => {
     if (!err) {
       res.json(rows);

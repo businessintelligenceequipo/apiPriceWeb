@@ -6,7 +6,7 @@ const jwt = require("jsonwebtoken");
 const { verificarToken } = require("../middlewares/verificarToken");
 const {verificarRolAdministrador, verificarRolDirectivo} = require("../middlewares/verificarRol")
 
-router.post("/signup", [verificarToken,verificarRolDirectivo], (req, res) => {
+router.post("/signup", (req, res) => {
   const data = {
     identificacion: req.body.identificacion,
     nombre: req.body.nombre,
@@ -39,7 +39,7 @@ router.post("/signup", [verificarToken,verificarRolDirectivo], (req, res) => {
   });
 });
 
-router.get("/usuarios", [verificarToken,verificarRolDirectivo], (req, res) => {
+router.get("/usuarios", (req, res) => {
   const query = `SELECT identificacion, u.nombre, apellidos, r.nombre as rol, t.nombre as tienda , correo FROM tbl_usuarios as u
     inner join tbl_tienda as t
     on t.pk_tienda = u.tienda
@@ -54,7 +54,7 @@ router.get("/usuarios", [verificarToken,verificarRolDirectivo], (req, res) => {
   });
 });
 
-router.get("/roles/usuarios", [verificarToken,verificarRolDirectivo], (req, res) => {
+router.get("/roles/usuarios", (req, res) => {
   const query = `SELECT * FROM tbl_roles;`;
   mysqlConnection.query(query, (err, rows, fields) => {
     if (!err) {
@@ -65,7 +65,7 @@ router.get("/roles/usuarios", [verificarToken,verificarRolDirectivo], (req, res)
   });
 });
 
-router.get("/usuario/:id", [verificarToken,verificarRolDirectivo], (req, res) => {
+router.get("/usuario/:id", (req, res) => {
   let id = req.params.id;
   const query = `SELECT identificacion, u.nombre, apellidos, r.nombre as rol, t.nombre as tienda , correo FROM tbl_usuarios as u
       inner join tbl_tienda as t
@@ -141,7 +141,7 @@ router.post("/login", async (req, res) => {
   );
 });
 
-router.post("/usuario/update/:id", [verificarToken,verificarRolDirectivo], (req, res) => {
+router.post("/usuario/update/:id", (req, res) => {
   let id = req.params.id;
   const data = req.body;
   var query = "UPDATE tbl_usuarios SET ? WHERE identificacion= ?";
@@ -159,7 +159,7 @@ router.post("/usuario/update/:id", [verificarToken,verificarRolDirectivo], (req,
   });
 });
 
-router.post("/usuario/delete/:id", [verificarToken,verificarRolDirectivo], (req, res) => {
+router.post("/usuario/delete/:id", (req, res) => {
   let id = req.params.id;
   var query = "DELETE FROM tbl_usuarios  WHERE identificacion= ?";
 

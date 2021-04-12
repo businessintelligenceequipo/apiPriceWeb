@@ -8,7 +8,7 @@ const {
 } = require("../middlewares/verificarRol");
 
 // GET all Tiendas
-router.get('/tiendas',[verificarToken], (req, res) => {
+router.get('/tiendas',(req, res) => {
   mysqlConnection.query('SELECT pk_tienda, nombre FROM tbl_tienda', (err, rows, fields) => {
     if(!err) {
       res.json(rows);
@@ -19,7 +19,7 @@ router.get('/tiendas',[verificarToken], (req, res) => {
 });
 
 // GET A Tienda
-router.get('/tienda/:id',[verificarToken], (req, res) => {
+router.get('/tienda/:id', (req, res) => {
   const { id } = req.params; 
   mysqlConnection.query('SELECT pk_tienda, nombre FROM tbl_tienda WHERE pk_tienda = ?', [id], (err, rows, fields) => {
     if (!err) {
@@ -31,7 +31,7 @@ router.get('/tienda/:id',[verificarToken], (req, res) => {
 });
 
 // DELETE A Tienda
-router.post('/tienda/delete/:id',[verificarToken, verificarRolDirectivo], (req, res) => {
+router.post('/tienda/delete/:id', (req, res) => {
   const { id } = req.params;
   mysqlConnection.query('DELETE FROM tbl_tienda WHERE pk_tienda = ?', [id], (err, rows, fields) => {
     if(!err) {
@@ -43,7 +43,7 @@ router.post('/tienda/delete/:id',[verificarToken, verificarRolDirectivo], (req, 
 });
 
 // INSERT An tienda
-router.post('/tienda',[verificarToken,verificarRolDirectivo], (req, res) => {
+router.post('/tienda', (req, res) => {
   const {pk_tienda, fk_zona, fk_municipio, nombre, tipo} = req.body;
   // console.log(pk_tienda, fk_zona, fk_municipio, nombre);
   const query = `
@@ -64,7 +64,7 @@ router.post('/tienda',[verificarToken,verificarRolDirectivo], (req, res) => {
 
 });
 
-router.post('/tienda/update/:id',[verificarToken, verificarRolDirectivo], (req, res) => {
+router.post('/tienda/update/:id', (req, res) => {
   const { fk_zona, fk_municipio, nombre, tipo } = req.body;
   const { id } = req.params;
   const query = `

@@ -37,7 +37,7 @@ router.get("/corner/:id", (req, res) => {
   );
 });
 
-router.post("/corner/add",[verificarToken,verificarRolDirectivo], (req, res) => {
+router.post("/corner/add", (req, res) => {
   const { codigo, descuento } = req.body;
   const query = `INSERT INTO priceAPP.corner (CODIGO,DESCUENTO) values (?,?)`;
   mysqlConnection.query(query, [codigo, descuento], (err, rows, fields) => {
@@ -49,7 +49,7 @@ router.post("/corner/add",[verificarToken,verificarRolDirectivo], (req, res) => 
   });
 });
 
-router.post("/corner/update/:id",[verificarToken,verificarRolDirectivo], (req, res) => {
+router.post("/corner/update/:id", (req, res) => {
   const { descuento } = req.body;
   const { id } = req.params;
   const query = "UPDATE priceAPP.corner SET DESCUENTO=? where CODIGO=? ;";
@@ -63,7 +63,7 @@ router.post("/corner/update/:id",[verificarToken,verificarRolDirectivo], (req, r
   });
 });
 
-router.post("/corner/delete/:id",[verificarToken,verificarRolDirectivo], (req, res) => {
+router.post("/corner/delete/:id", (req, res) => {
     const { id } = req.params;
     const query = "DELETE FROM priceAPP.corner where CODIGO=? ;";
   
